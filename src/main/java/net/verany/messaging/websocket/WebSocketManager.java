@@ -1,6 +1,7 @@
 package net.verany.messaging.websocket;
 
 import com.mongodb.client.model.Filters;
+import com.mongodb.lang.Nullable;
 import lombok.Getter;
 import net.verany.messaging.VeranyMessenger;
 import net.verany.messaging.command.Command;
@@ -45,11 +46,16 @@ public class WebSocketManager {
         return commands.stream().filter(command -> command.getCommand().equalsIgnoreCase(cmd)).findFirst().orElse(null);
     }
 
-    public List<WebSocketClient> getClients(String type) {
+    public List<WebSocketClient> getClients(@Nullable String type) {
         List<WebSocketClient> toReturn = new ArrayList<>();
-        for (Document document : VeranyMessenger.databaseManager.getCollection("sockets").find(Filters.eq("type", type))) {
+        for (Document document : VeranyMessenger.INSTANCE.getDatabaseManager().getCollection("sockets").find(type == null ? Filters.all("type") : Filters.eq("type", type))) {
             String key = document.getString("key");
+
+            WebSocketClient client = getClients().values().stream().filter(webSocketClient -> webSocketClient.getKey().equals(key)).findFirst().orElse(null);
+            if (client == null) continue;
+            toReturn.add(client);
         }
+        return toReturn;
     }
 
     public WebSocketClient getClient(WebSocket socket) {
