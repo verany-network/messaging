@@ -2,6 +2,7 @@ package net.verany.messaging.command;
 
 import com.mongodb.client.model.Filters;
 import net.verany.messaging.VeranyMessenger;
+import net.verany.messaging.utils.Logger;
 import net.verany.messaging.websocket.WebSocketRequest;
 import org.bson.Document;
 
@@ -14,12 +15,12 @@ public class AuthCommand extends Command {
     @Override
     public void onExecute(WebSocketRequest request) {
         String key = request.getRequest().getString("key");
-        Document document = VeranyMessenger.databaseManager.getCollection("sockets").find(Filters.eq("key", key)).first();
+        Document document = VeranyMessenger.INSTANCE.getDatabaseManager().getCollection("sockets").find(Filters.eq("key", key)).first();
         if (document == null) {
-            System.out.println("Could not auth requested key " + key);
+            new Logger("Authentication failed with key " + key);
             return;
         }
-        System.out.println("Authed " + key);
+        new Logger("Authentication success with key " + key + " (" + request.getClient().getSocket().getRemoteSocketAddress().getAddress().toString() + ")");
         request.getClient().setKey(key);
     }
 }
