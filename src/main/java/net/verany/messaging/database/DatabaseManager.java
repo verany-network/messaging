@@ -4,6 +4,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import net.verany.messaging.utils.Logger;
 import org.bson.Document;
 
 public class DatabaseManager {
@@ -26,12 +27,12 @@ public class DatabaseManager {
         MongoClientURI uri = new MongoClientURI("mongodb://" + user + ":" + password + "@" + host + "/?authSource=admin");
         client = new MongoClient(uri);
         database = client.getDatabase(databaseName);
-        System.out.println("Connected to Database");
+        new Logger("Connected with Database.");
     }
 
     public void disconnect() {
         client.close();
-        System.out.println("Disconnected from Database");
+        new Logger("Disconnected from Database.");
     }
 
     public MongoCollection<Document> getCollection(String name){
