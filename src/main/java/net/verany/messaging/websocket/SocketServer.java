@@ -1,6 +1,7 @@
 package net.verany.messaging.websocket;
 
 import net.verany.messaging.VeranyMessenger;
+import net.verany.messaging.utils.Logger;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -15,18 +16,17 @@ public class SocketServer extends WebSocketServer {
 
     @Override
     public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
-        System.out.println(webSocket.getRemoteSocketAddress().getAddress().toString() + " hat sich verbunden");
+        new Logger(webSocket.getRemoteSocketAddress().getAddress().toString() + " requested connection...");
     }
 
     @Override
     public void onClose(WebSocket webSocket, int i, String s, boolean b) {
-        System.out.println(webSocket.getRemoteSocketAddress().getAddress().toString() + " hat verlassen");
+        new Logger(webSocket.getRemoteSocketAddress().getAddress().toString() + " disconnected.");
     }
 
     @Override
     public void onMessage(WebSocket webSocket, String s) {
-        System.out.println(webSocket.getRemoteSocketAddress().getAddress().toString() + " hat " + s + " geschrieben");
-        VeranyMessenger.SOCKET_MANAGER.manage(webSocket, s);
+        VeranyMessenger.INSTANCE.getSocketManager().manage(webSocket, s);
     }
 
     @Override
@@ -36,7 +36,7 @@ public class SocketServer extends WebSocketServer {
 
     @Override
     public void onStart() {
-        System.out.println("WebSocket Server started");
+        new Logger("WebSocket Server started.");
         setConnectionLostTimeout(100);
     }
 
