@@ -21,7 +21,7 @@ public class SocketServer extends WebSocketServer {
 
     @Override
     public void onClose(WebSocket webSocket, int i, String s, boolean b) {
-        new Logger(webSocket.getRemoteSocketAddress().getAddress().toString() + " disconnected.");
+        new Logger(s + " disconnected.");
     }
 
     @Override
