@@ -32,6 +32,7 @@ public class WebSocketManager {
 
         String command = object.getString("cmd");
         WebSocketClient client = getClient(socket);
+        if (client.getKey() == null && !command.equals("auth")) return;
         WebSocketRequest request = new WebSocketRequest(client, object);
 
         if (getCommand(command) != null)
@@ -44,6 +45,10 @@ public class WebSocketManager {
 
     private Command getCommand(String cmd) {
         return commands.stream().filter(command -> command.getCommand().equalsIgnoreCase(cmd)).findFirst().orElse(null);
+    }
+
+    public WebSocketClient getClient(String key) {
+        return clients.values().stream().filter(webSocketClient -> webSocketClient.getKey().equals(key)).findFirst().orElse(null);
     }
 
     public List<WebSocketClient> getClients(@Nullable String type) {
