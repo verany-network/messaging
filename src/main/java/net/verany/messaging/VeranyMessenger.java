@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import net.verany.messaging.command.AnswerCommand;
 import net.verany.messaging.command.AuthCommand;
+import net.verany.messaging.command.RedirectCommand;
 import net.verany.messaging.database.DatabaseManager;
 import net.verany.messaging.websocket.SocketServer;
 import net.verany.messaging.websocket.WebSocketManager;
@@ -15,20 +17,26 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
+@Getter
 public class VeranyMessenger {
 
-    public static final WebSocketManager SOCKET_MANAGER = new WebSocketManager();
-    public static DatabaseManager databaseManager;
+    public static VeranyMessenger INSTANCE;
+
+    private final WebSocketManager socketManager = new WebSocketManager();
+    private final DatabaseManager databaseManager;
 
     @SneakyThrows
     public VeranyMessenger() {
-        MongoData data = new Gson().fromJson(getResourceFileAsString("data.json"), MongoData.class);
+        INSTANCE = this;
+
+        MongoData data = new Gson().fromJson(getResourceFileAsString(), MongoData.class);
 
         databaseManager = new DatabaseManager(data.getUsername(), data.getHostname(), data.getPassword(), "socket");
         databaseManager.connect();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            SOCKET_MANAGER.getClients().forEach((webSocket, webSocketClient) -> webSocket.close());
+            socketManager.getClients().forEach((webSocket, webSocketClient) -> webSocket.close());
+            databaseManager.getCollection("sockets").drop();
             databaseManager.disconnect();
         }));
 
@@ -40,12 +48,14 @@ public class VeranyMessenger {
     }
 
     private void initCommands() {
-        SOCKET_MANAGER.registerCommand(new AuthCommand("auth"));
+        socketManager.registerCommand(new AuthCommand("auth"));
+        socketManager.registerCommand(new RedirectCommand("redirect"));
+        socketManager.registerCommand(new AnswerCommand("answer"));
     }
 
-    private static String getResourceFileAsString(String file) throws IOException {
+    private static String getResourceFileAsString() throws IOException {
         ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-        try (InputStream is = classLoader.getResourceAsStream(file)) {
+        try (InputStream is = classLoader.getResourceAsStream("data.json")) {
             if (is == null) return null;
             try (InputStreamReader isr = new InputStreamReader(is);
                  BufferedReader reader = new BufferedReader(isr)) {
