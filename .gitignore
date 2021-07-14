@@ -1,6 +1,12 @@
-build.gradle
+# Project exclude paths
+gradlew.bat
+gradlew
+/gradle
 .gradle
-.idea
-build
-src/main/resources/data.json
 gradle
+.idea
+.vscode
+.temp
+node_modules
+settings
+src/main/resources/data.json
